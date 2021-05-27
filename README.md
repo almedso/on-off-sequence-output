@@ -1,12 +1,11 @@
-# `single-led-output`
+# `on-off-sequence-output`
 
 [![Build Status](https://travis-ci.org/almedso/single-led-output.svg)](https://travis-ci.org/almedso/single-led-output)
 [![Crate](https://img.shields.io/crates/v/single-led-output.svg)](https://crates.io/crates/single-led-output)
 [![Docs](https://docs.rs/single-led-output/badge.svg)](https://docs.rs/debounced-pin)
 
-A platform-agnostic single led output library.
-
-This library provides an `update()` method to refresh an led according to a preset time pattern.
+A platform-agnostic library that provides output of a sequence of on/off states
+e.g. on an LED.
 
 ## Installation
 
@@ -43,7 +42,17 @@ cargo build --target thumbv7em-none-eabihf --example show-led-output
 openocd-flash.sh target/thumbv7em-none-eabihf/release/examples/show-led-output
 ```
 
-The delivered arbitrary configuration
+Since this is a library, there is no toolchain configured for build in `.cargo/config`.
+
+## Testing
+
+Testing is done via unit tests on host only. Run
+
+```sh
+cargo test --lib --tests
+```
+
+... to exclude examples because they do not compile on host
 
 ## License
 
