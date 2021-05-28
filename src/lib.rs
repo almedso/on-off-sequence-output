@@ -18,7 +18,7 @@
 //! directory in the repository.
 //!
 //! ```rust,ignore
-//! use single_led_output::*;
+//! use on_off_sequence_output::prelude::*;
 //!
 //! // This is up to the implementation details of the embedded_hal you are using.
 //! let led_pin: OutputPin = hal_function_which_returns_output_pin();
