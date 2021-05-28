@@ -103,7 +103,19 @@ mod fn_state_at_position {
 mod on_off_sequence_output {
     use super::*;
 
-    mod update {
+    mod set {
+        use super::*;
+
+        #[test]
+        #[should_panic]
+        fn too_many_states() {
+            let pin_mock = MockedOutputPin::expected(0, 0b0_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 4);
+            ledout.set(1, 128, Repeat::Never);
+        }
+    }
+
+    mod update_scaling {
         use super::*;
 
         #[test]
@@ -155,5 +167,99 @@ mod on_off_sequence_output {
             }
             Ok(())
         }
+    }
+
+    mod update_onetime_output {
+        use super::*;
+
+        #[test]
+        fn constant_pattern_one() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(1, 0b1_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b1, 1, Repeat::Never);
+            assert!( ! ledout.update()?);
+            assert!(ledout.update()?);
+            assert!(ledout.update()?);
+            Ok(())
+        }
+
+        #[test]
+        fn constant_pattern_two() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(2, 0b00_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b00, 2, Repeat::Never);
+            assert!( ! ledout.update()?);
+            assert!( ! ledout.update()?);
+            assert!(ledout.update()?);
+            assert!(ledout.update()?);
+            Ok(())
+        }
+
+        #[test]
+        fn symmetric_pattern_one() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(2, 0b10_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b10, 2, Repeat::Never);
+            for _ in 1..=2 {
+                assert!( ! ledout.update()?);
+            }
+            assert!(ledout.update()?);
+            assert!(ledout.update()?);
+            Ok(())
+        }
+
+        #[test]
+        fn symmetric_pattern_two() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(4, 0b1001_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b1001, 4, Repeat::Never);
+            for _ in 1..=4 {
+                assert!( ! ledout.update()?);
+            }
+            assert!(ledout.update()?);
+            assert!(ledout.update()?);
+            Ok(())
+        }
+
+        #[test]
+        fn some_complex_pattern() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(12, 0b1111_0011_1001_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b1111_0011_1001_u128, 12, Repeat::Never);
+            for _ in 1..=12 {
+                assert!( ! ledout.update()?);
+            }
+            assert!(ledout.update()?);
+            assert!(ledout.update()?);
+            Ok(())
+        }
+    }
+
+    mod update_repeats {
+        use super::*;
+
+        #[test]
+        fn never() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(2, 0b1_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b1, 2, Repeat::Never);
+            for _ in 1..=2 {
+                assert!( ! ledout.update()?);
+            }
+            assert!(ledout.update()?);
+            Ok(())
+        }
+
+        // #[test]
+        fn forever() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(6, 0b101010_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b1, 2, Repeat::Forever);
+            for _ in 1..=6 {
+                assert!( ! ledout.update()?);
+            }
+            Ok(())
+        }
+
     }
 }

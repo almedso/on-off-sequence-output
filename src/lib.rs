@@ -157,6 +157,10 @@ impl<T: OutputPin> OnOffSequenceOutput<T> {
         self.output_states = output_states;
         self.number_of_output_states = number_of_output_states;
         self.repeat = repeat;
+        // re-initialize the internal state variables
+        self.scale_index = 0u16;
+        self.state_index = 0u16;
+        self.run_output = true;
     }
 }
 
@@ -211,7 +215,6 @@ impl<T: OutputPin> OutputUpdate for OnOffSequenceOutput<T> {
         //                 self.repeat = Repeat::Never;
         //             }
         //         }
-
         //     }
         // }
 
