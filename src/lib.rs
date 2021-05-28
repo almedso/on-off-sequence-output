@@ -56,7 +56,7 @@ use embedded_hal::digital::v2::OutputPin;
 // use bitset_core::BitSet;
 
 /// How often shall the output repeated
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Repeat {
     Never,
     Times(u16),
@@ -185,6 +185,9 @@ impl<T: OutputPin> OutputUpdate for OnOffSequenceOutput<T> {
         }
         self.scale_index = 0;
 
+        // handle the output sequence
+        // Note: At the end of the output sequence there is an extra update
+        //       That does not result in any state update (one tick gap)
         if self.run_output {
             if self.state_index == self.number_of_output_states {
                 // all states are "printed"
@@ -201,22 +204,22 @@ impl<T: OutputPin> OutputUpdate for OnOffSequenceOutput<T> {
             }
         }
 
-        // // handle the repetitions
-        // if self.run_output {
-        //     match self.repeat {
-        //         Repeat::Never => self.run_output = false,
-        //         Repeat::Forever => self.run_output = true,
-        //         Repeat::Times(t) => {
-        //             if t > 0 {
-        //                 self.run_output = true;
-        //                 self.repeat = Repeat::Times(t-1);
-        //             } else {
-        //                 self.run_output = false;
-        //                 self.repeat = Repeat::Never;
-        //             }
-        //         }
-        //     }
-        // }
+        // handle the repetitions
+        if !self.run_output {
+            self.repeat = match self.repeat {
+                Repeat::Never => Repeat::Never,
+                Repeat::Forever => Repeat::Forever,
+                Repeat::Times(n) => {
+                    if n > 0 { Repeat::Times(n-1) }
+                    else { Repeat::Never }
+                },
+            };
+            self.run_output = match self.repeat {
+                Repeat::Never => false,
+                Repeat::Forever => true,
+                Repeat::Times(_) => true,
+            };
+        }
 
         Ok(!self.run_output)
     }

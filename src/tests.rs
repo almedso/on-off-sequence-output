@@ -250,9 +250,49 @@ mod on_off_sequence_output {
             Ok(())
         }
 
-        // #[test]
+        #[test]
+        fn zero_times() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(2, 0b1_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b1, 2, Repeat::Times(0));
+            for _ in 1..=2 {
+                assert!( ! ledout.update()?);
+            }
+            assert!(ledout.update()?);
+            Ok(())
+        }
+
+        #[test]
+        fn one_time() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(4, 0b101_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b1, 2, Repeat::Times(1));
+            // per repetition there is one extra update call where no state update happens
+            // 2 + (2 +1 ) * 1 = 5 updates returning Ok(false)
+            for _ in 1..=5 {
+                assert!( ! ledout.update()?);
+            }
+            assert!(ledout.update()?);
+            Ok(())
+        }
+
+        #[test]
+        fn five_times() -> Result<(), MockedOutputPinError> {
+            let pin_mock = MockedOutputPin::expected(12, 0b_0101_0101_0101_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
+            ledout.set(0b1, 2, Repeat::Times(5));
+            // per repetition there is one extra update call where no state update happens
+            // 2 + (2 +1 ) * 5 = 17 updates returning Ok(false)
+            for _ in 1..=17 {
+                assert!( ! ledout.update()?);
+            }
+            assert!(ledout.update()?);
+            Ok(())
+        }
+
+        #[test]
         fn forever() -> Result<(), MockedOutputPinError> {
-            let pin_mock = MockedOutputPin::expected(6, 0b101010_u128);
+            let pin_mock = MockedOutputPin::expected(4, 0b_0101_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Forever);
             for _ in 1..=6 {
