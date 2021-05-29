@@ -6,6 +6,8 @@ use cortex_m_rt::entry;
 use panic_semihosting as _;
 
 use on_off_sequence_output::prelude::*;
+// import the macros
+use on_off_sequence_output::{set_output_forever, set_output_once};
 use stm32f4xx_hal::{delay::Delay, prelude::*, stm32};
 
 #[entry]
@@ -43,7 +45,7 @@ fn main() -> ! {
     }
 
     // Switch on two seconds, switch off 1 second, switch on 3 seconds
-    ledout.set(0b111111001111, 12, Repeat::Never);
+    set_output_once!(ledout, 0b111111001111);
     loop {
         delay.delay_ms(100_u16);
         if ledout.update().unwrap() {
@@ -52,7 +54,8 @@ fn main() -> ! {
     }
 
     // Blink forever at two Herz and duty factor 0.25
-    ledout.set(0b1000, 4, Repeat::Times(10));
+    // ledout.set(0b1000, 4, Repeat::Times(10));
+    set_output_forever!(ledout, 0b1000);
     loop {
         delay.delay_ms(100_u16);
         ledout.update().unwrap();

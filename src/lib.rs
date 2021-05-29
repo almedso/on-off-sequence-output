@@ -183,7 +183,6 @@ impl<T: OutputPin> OutputUpdate for OnOffSequenceOutput<T> {
 
     /// Updates the output logic and potentially switches the LED state
     fn update(&mut self) -> Result<bool, Self::Error> {
-
         // handle the update scale
         self.scale_index += 1;
         if self.update_scale > self.scale_index {
@@ -214,9 +213,12 @@ impl<T: OutputPin> OutputUpdate for OnOffSequenceOutput<T> {
                 Repeat::Never => Repeat::Never,
                 Repeat::Forever => Repeat::Forever,
                 Repeat::Times(n) => {
-                    if n > 0 { Repeat::Times(n-1) }
-                    else { Repeat::Never }
-                },
+                    if n > 0 {
+                        Repeat::Times(n - 1)
+                    } else {
+                        Repeat::Never
+                    }
+                }
             };
             self.run_output = match self.repeat {
                 Repeat::Never => false,
@@ -226,6 +228,77 @@ impl<T: OutputPin> OutputUpdate for OnOffSequenceOutput<T> {
         }
 
         Ok(!self.run_output)
+    }
+}
+
+/// Determine at position of the most left one in the bitfield represented as u128
+///
+/// # Arguments
+///
+/// * `bitfield` -  The bitfield to find the most left bit that is set to one
+///
+/// # Returns
+///
+/// *
+pub fn position_of_highest_one(bitfield: u128) -> u16 {
+    const MSB_ONE: u128 = 1 << 127;
+
+    let mut position = 127_u16;
+    let mut bitfield = bitfield;
+    while (bitfield & MSB_ONE) == 0 && position > 0 {
+        bitfield = bitfield << 1;
+        position -= 1;
+    }
+    position
+}
+
+pub mod macros {
+    /// Simplified setting of the output without repetitions
+    ///
+    /// The number of the output states is automatically computed
+    /// It requires that the last output state equals to one
+    ///
+    /// # Arguments
+    ///
+    /// * `Instance of OnOffSequenceOutput`
+    /// * `bitfield (u128)` - MSB of the Output sequence must be one
+    ///
+    /// # Examples
+    ///
+    /// ```rust,ignore
+    /// set_output_once!(ledout, 0b1100);
+    /// // ... is equivalent to ...
+    /// // ledout.set(0b1100, 4, Repeat::Never);
+    /// ```
+    #[macro_export]
+    macro_rules! set_output_once {
+        ($a:expr, $b:expr) => {
+            $a.set($b, position_of_highest_one($b), Repeat::Never)
+        };
+    }
+
+    /// Simplified setting of the output with infinite repetitions
+    ///
+    /// The number of the output states is automatically computed
+    /// It requires that the last output state equals to one
+    ///
+    /// # Arguments
+    ///
+    /// * `Instance of OnOffSequenceOutput`
+    /// * `bitfield (u128)` - MSB of the Output sequence must be one
+    ///
+    /// # Examples
+    /// ```rust,ignore
+    /// set_output_forever!(ledout, 0b1000);
+    /// // ... is equivalent to ...
+    /// // ledout.set(0b1000, 4, Repeat::Forever);
+    /// ```
+
+    #[macro_export]
+    macro_rules! set_output_forever {
+        ($a:expr, $b:expr) => {
+            $a.set($b, position_of_highest_one($b), Repeat::Forever)
+        };
     }
 }
 

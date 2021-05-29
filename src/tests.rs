@@ -197,7 +197,7 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(2, 0b00_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b00, 2, Repeat::Never);
-            assert!( ! ledout.update()?);
+            assert!(!ledout.update()?);
             assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
@@ -208,7 +208,7 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(2, 0b10_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b10, 2, Repeat::Never);
-            assert!( ! ledout.update()?);
+            assert!(!ledout.update()?);
             assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
@@ -220,7 +220,7 @@ mod on_off_sequence_output {
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1001, 4, Repeat::Never);
             for _ in 1..4 {
-                assert!( ! ledout.update()?);
+                assert!(!ledout.update()?);
             }
             assert!(ledout.update()?);
             assert!(ledout.update()?);
@@ -233,7 +233,7 @@ mod on_off_sequence_output {
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1111_0011_1001_u128, 12, Repeat::Never);
             for _ in 1..12 {
-                assert!( ! ledout.update()?);
+                assert!(!ledout.update()?);
             }
             assert!(ledout.update()?);
             assert!(ledout.update()?);
@@ -249,7 +249,7 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(2, 0b1_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Never);
-            assert!( ! ledout.update()?);
+            assert!(!ledout.update()?);
             assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
@@ -260,7 +260,7 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(2, 0b1_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Times(0));
-            assert!( ! ledout.update()?);
+            assert!(!ledout.update()?);
             assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
@@ -272,7 +272,7 @@ mod on_off_sequence_output {
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Times(1));
             for _ in 1..4 {
-                assert!( ! ledout.update()?);
+                assert!(!ledout.update()?);
             }
             assert!(ledout.update()?);
             assert!(ledout.update()?);
@@ -285,7 +285,7 @@ mod on_off_sequence_output {
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Times(5));
             for _ in 1..12 {
-                assert!( ! ledout.update()?);
+                assert!(!ledout.update()?);
             }
             assert!(ledout.update()?);
             assert!(ledout.update()?);
@@ -298,10 +298,40 @@ mod on_off_sequence_output {
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Forever);
             for _ in 1..=6 {
-                assert!( ! ledout.update()?);
+                assert!(!ledout.update()?);
             }
             Ok(())
         }
+    }
+}
 
+mod fn_position_of_highest_one {
+    use super::super::position_of_highest_one;
+
+    #[test]
+    fn all_zeros() {
+        assert_eq!(0, position_of_highest_one(0));
+    }
+
+    #[test]
+    fn one_at_pos_zero() {
+        assert_eq!(0, position_of_highest_one(0b1));
+    }
+
+    #[test]
+    fn one_at_pos_one() {
+        assert_eq!(1, position_of_highest_one(0b10));
+    }
+
+    #[test]
+    fn one_at_various_positions() {
+        assert_eq!(8, position_of_highest_one(0x1ff));
+        assert_eq!(2, position_of_highest_one(0b101));
+        assert_eq!(3, position_of_highest_one(0b1010));
+    }
+
+    #[test]
+    fn all_one() {
+        assert_eq!(127, position_of_highest_one(!0));
     }
 }
