@@ -113,6 +113,14 @@ mod on_off_sequence_output {
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 4);
             ledout.set(1, 128, Repeat::Never);
         }
+
+        #[test]
+        #[should_panic]
+        fn no_zero_sequence_length() {
+            let pin_mock = MockedOutputPin::expected(0, 0b0_u128);
+            let mut ledout = OnOffSequenceOutput::new(pin_mock, 4);
+            ledout.set(1, 0, Repeat::Never);
+        }
     }
 
     mod update_scaling {
@@ -123,7 +131,7 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(0, 0b0_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 4);
             for _index in 0..2 {
-                assert!(!ledout.update()?);
+                ledout.update()?;
             }
             Ok(())
         }
@@ -132,8 +140,9 @@ mod on_off_sequence_output {
         fn one_update_at_scale_four() -> Result<(), MockedOutputPinError> {
             let pin_mock = MockedOutputPin::expected(1, 0b1_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 4);
+            ledout.set(0b1, 1, Repeat::Never);
             for _index in 0..4 {
-                assert!(!ledout.update()?);
+                ledout.update()?;
             }
             Ok(())
         }
@@ -144,7 +153,7 @@ mod on_off_sequence_output {
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 4);
             ledout.set(0b101, 3, Repeat::Never);
             for _index in 0..12 {
-                assert!(!ledout.update()?);
+                ledout.update()?;
             }
             Ok(())
         }
@@ -153,7 +162,8 @@ mod on_off_sequence_output {
         fn one_update_at_scale_one() -> Result<(), MockedOutputPinError> {
             let pin_mock = MockedOutputPin::expected(1, 0b1_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
-            assert!(!ledout.update()?);
+            ledout.set(0b1, 1, Repeat::Never);
+            ledout.update()?;
             Ok(())
         }
 
@@ -162,9 +172,9 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(3, 0b101_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b101, 3, Repeat::Never);
-            for _index in 0..3 {
-                assert!(!ledout.update()?);
-            }
+            ledout.update()?;
+            ledout.update()?;
+            ledout.update()?;
             Ok(())
         }
     }
@@ -177,7 +187,6 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(1, 0b1_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 1, Repeat::Never);
-            assert!( ! ledout.update()?);
             assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
@@ -189,7 +198,6 @@ mod on_off_sequence_output {
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b00, 2, Repeat::Never);
             assert!( ! ledout.update()?);
-            assert!( ! ledout.update()?);
             assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
@@ -200,9 +208,7 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(2, 0b10_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b10, 2, Repeat::Never);
-            for _ in 1..=2 {
-                assert!( ! ledout.update()?);
-            }
+            assert!( ! ledout.update()?);
             assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
@@ -213,7 +219,7 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(4, 0b1001_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1001, 4, Repeat::Never);
-            for _ in 1..=4 {
+            for _ in 1..4 {
                 assert!( ! ledout.update()?);
             }
             assert!(ledout.update()?);
@@ -226,7 +232,7 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(12, 0b1111_0011_1001_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1111_0011_1001_u128, 12, Repeat::Never);
-            for _ in 1..=12 {
+            for _ in 1..12 {
                 assert!( ! ledout.update()?);
             }
             assert!(ledout.update()?);
@@ -243,9 +249,8 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(2, 0b1_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Never);
-            for _ in 1..=2 {
-                assert!( ! ledout.update()?);
-            }
+            assert!( ! ledout.update()?);
+            assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
         }
@@ -255,9 +260,8 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(2, 0b1_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Times(0));
-            for _ in 1..=2 {
-                assert!( ! ledout.update()?);
-            }
+            assert!( ! ledout.update()?);
+            assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
         }
@@ -267,11 +271,10 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(4, 0b101_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Times(1));
-            // per repetition there is one extra update call where no state update happens
-            // 2 + (2 +1 ) * 1 = 5 updates returning Ok(false)
-            for _ in 1..=5 {
+            for _ in 1..4 {
                 assert!( ! ledout.update()?);
             }
+            assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
         }
@@ -281,18 +284,17 @@ mod on_off_sequence_output {
             let pin_mock = MockedOutputPin::expected(12, 0b_0101_0101_0101_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Times(5));
-            // per repetition there is one extra update call where no state update happens
-            // 2 + (2 +1 ) * 5 = 17 updates returning Ok(false)
-            for _ in 1..=17 {
+            for _ in 1..12 {
                 assert!( ! ledout.update()?);
             }
+            assert!(ledout.update()?);
             assert!(ledout.update()?);
             Ok(())
         }
 
         #[test]
         fn forever() -> Result<(), MockedOutputPinError> {
-            let pin_mock = MockedOutputPin::expected(4, 0b_0101_u128);
+            let pin_mock = MockedOutputPin::expected(6, 0b01_0101_u128);
             let mut ledout = OnOffSequenceOutput::new(pin_mock, 1);
             ledout.set(0b1, 2, Repeat::Forever);
             for _ in 1..=6 {

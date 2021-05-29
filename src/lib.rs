@@ -98,16 +98,18 @@ pub struct OnOffSequenceOutput<T: OutputPin> {
     /// The output states are represented by the bits of an unsigned 128-bit integer
     output_states: u128,
 
-    /// how many bits are considered (max: 128)
+    /// How many bits are considered (min 1, max: 128)
     number_of_output_states: u16,
 
-    /// internal state: to manage scaling
+    /// Internal state: Manage scaling
     scale_index: u16,
 
-    /// internal state: to manage next output state
+    /// internal state: Manage next output state
     state_index: u16,
 
-    /// internal state: Run output indicator
+    /// Internal state: Run output indicator
+    ///
+    /// # Values
     ///
     /// * true - either a run is not completed or there are more repetitions to do
     /// * false - run is completed (intermediate) and no more repetitions are
@@ -131,7 +133,7 @@ impl<T: OutputPin> OnOffSequenceOutput<T> {
         Self {
             pin,
             update_scale,
-            output_states: 0b01,
+            output_states: 0b_10_u128,
             number_of_output_states: 2,
             repeat: Repeat::Forever,
             scale_index: 0u16,
@@ -152,7 +154,10 @@ impl<T: OutputPin> OnOffSequenceOutput<T> {
     ///
     pub fn set(&mut self, output_states: u128, number_of_output_states: u16, repeat: Repeat) {
         if number_of_output_states > 127 {
-            panic!("Must be less than 128 output states")
+            panic!("Must be less than 128 output states");
+        };
+        if number_of_output_states == 0 {
+            panic!("Zero output states do not make sense");
         };
         self.output_states = output_states;
         self.number_of_output_states = number_of_output_states;
@@ -178,29 +183,28 @@ impl<T: OutputPin> OutputUpdate for OnOffSequenceOutput<T> {
 
     /// Updates the output logic and potentially switches the LED state
     fn update(&mut self) -> Result<bool, Self::Error> {
+
         // handle the update scale
         self.scale_index += 1;
         if self.update_scale > self.scale_index {
-            return Ok(false);
+            return Ok(!self.run_output);
         }
         self.scale_index = 0;
 
         // handle the output sequence
-        // Note: At the end of the output sequence there is an extra update
-        //       That does not result in any state update (one tick gap)
         if self.run_output {
-            if self.state_index == self.number_of_output_states {
+            // if we get here, always some output has to happen
+            if state_at_position(self.output_states, self.state_index) {
+                self.pin.set_high()?;
+            } else {
+                self.pin.set_low()?;
+            }
+            self.state_index += 1;
+            if self.state_index >= self.number_of_output_states {
                 // all states are "printed"
                 self.run_output = false;
                 self.state_index = 0;
             } else {
-                // still some states that need to be "printed"
-                if state_at_position(self.output_states, self.state_index) {
-                    self.pin.set_high()?;
-                } else {
-                    self.pin.set_low()?;
-                }
-                self.state_index += 1;
             }
         }
 
