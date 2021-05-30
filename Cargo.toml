@@ -1,10 +1,22 @@
 [package]
 name = "on-off-sequence-output"
+description = "Sends a sequence of on/off states to a GPIO Pin"
 version = "0.1.0"
 authors = ["Volker Kempert <volker.kempert@almedso.de>"]
 edition = "2018"
 keywords = ["embedded-hal", "led"]
 categories = ["embedded", "no-std",]
+documentation = "https://docs.rs/on-off-sequence-output"
+homepage = "https://github.com/almedso/on-off-sequence-output"
+repository = "https://github.com/almedso/on-off-sequence-output"
+readme = "README.md"
+license = "MIT"
+include = [
+    "**/*.rs",
+    "Cargo.toml",
+    "README.md",
+    "LICENSE.md",
+]
 
 [dependencies]
 embedded-hal = { version = "0.2.5", features = ["unproven"] }
