@@ -44,8 +44,8 @@ fn main() -> ! {
         };
     }
 
-    // Switch on two seconds, switch off 1 second, switch on 3 seconds
-    set_output_once!(ledout, 0b111111001111);
+    // Switch on two seconds, switch off 1 second, switch on 4 seconds
+    set_output_once!(ledout, 0b11111111001111);
     loop {
         delay.delay_ms(100_u16);
         if ledout.update().unwrap() {
@@ -53,9 +53,8 @@ fn main() -> ! {
         };
     }
 
-    // Blink forever at two Herz and duty factor 0.25
-    // ledout.set(0b1000, 4, Repeat::Times(10));
-    set_output_forever!(ledout, 0b1000);
+    // Blink forever at two Herz and duty factor 0.75
+    set_output_forever!(ledout, 0b1110);
     loop {
         delay.delay_ms(100_u16);
         ledout.update().unwrap();
