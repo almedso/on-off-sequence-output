@@ -337,9 +337,11 @@ mod fn_position_of_highest_one {
         assert_eq!(16, position_of_highest_one(0x1_0000));
         assert_eq!(32, position_of_highest_one(0x1_0000_0000));
         assert_eq!(64, position_of_highest_one(0x1_0000_0000_0000_0000));
-        assert_eq!(96, position_of_highest_one(0x1_0000_0000_0000_0000_0000_0000));
+        assert_eq!(
+            96,
+            position_of_highest_one(0x1_0000_0000_0000_0000_0000_0000)
+        );
     }
-
 
     #[test]
     fn all_one() {

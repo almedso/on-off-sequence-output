@@ -52,7 +52,10 @@
 
 pub mod prelude;
 
+pub mod morse;
+
 use embedded_hal::digital::v2::OutputPin;
+use morse::{str_to_morse, MorseError};
 // use bitset_core::BitSet;
 
 /// How often shall the output repeated
@@ -142,6 +145,12 @@ impl<T: OutputPin> OnOffSequenceOutput<T> {
         }
     }
 
+    fn reinitialize_internal_state(&mut self) {
+        self.scale_index = 0u16;
+        self.state_index = 0u16;
+        self.run_output = true;
+    }
+
     /// Set a new output
     ///
     /// # Arguments
@@ -162,10 +171,29 @@ impl<T: OutputPin> OnOffSequenceOutput<T> {
         self.output_states = output_states;
         self.number_of_output_states = number_of_output_states;
         self.repeat = repeat;
-        // re-initialize the internal state variables
-        self.scale_index = 0u16;
-        self.state_index = 0u16;
-        self.run_output = true;
+        self.reinitialize_internal_state();
+    }
+
+    /// Set a new morse code as output
+    ///
+    /// # Arguments
+    ///
+    /// * `morse_text` - Short text to be output as morse code sequence
+    /// * `repeat` - How often the morse text is repeated
+    ///
+    /// # Returns
+    ///
+    /// A result structure
+    ///
+    /// * with empty value if Ok()
+    /// * or Err(MorseError)
+    pub fn set_morse(&mut self, morse_text: &str, repeat: Repeat) -> Result<(), MorseError> {
+        let t = str_to_morse(morse_text)?;
+        self.output_states = t.0;
+        self.number_of_output_states = t.1;
+        self.reinitialize_internal_state();
+        self.repeat = repeat;
+        Ok(())
     }
 }
 

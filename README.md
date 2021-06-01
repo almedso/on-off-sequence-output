@@ -40,13 +40,14 @@ loop {
    wait(1.ms());
 }
 
-led.set(0b010, 3, Repeat::Times(2))
+led.set(0b010, 3, Repeat::Times(2)).unwrap();
 loop {
    if led.update().unwrap() { break; };
    wait(1.ms());
 }
 
-led.set(0b10, 2, Repeat::Forever)
+// some morse code output is possible as well
+ledout.set_morse("RUST IS GOOD  ", Repeat::Forever).unwrap();
 loop {
    led.update().unwrap();
    wait(1.ms());
@@ -61,6 +62,12 @@ If you have that board avaliable run
 ```sh
 cargo build --target thumbv7em-none-eabihf --example show-led-output
 openocd-flash.sh target/thumbv7em-none-eabihf/release/examples/show-led-output
+```
+
+alternatively you can use use cargo-flash tool.
+
+```
+cargo flash --chip stm32f401re --example show-rust-is-good --target thumbv7em-none-eabihf
 ```
 
 Since this is a library, there is no toolchain configured for build in `.cargo/config`.
