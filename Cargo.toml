@@ -1,7 +1,7 @@
 [package]
 name = "on-off-sequence-output"
 description = "Sends a sequence of on/off states to a GPIO Pin"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Volker Kempert <volker.kempert@almedso.de>"]
 edition = "2018"
 keywords = ["embedded-hal", "led", "morse_code"]
